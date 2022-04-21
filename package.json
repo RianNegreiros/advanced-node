@@ -1,0 +1,20 @@
+{
+  "name": "advanced-node",
+  "version": "1.0.0",
+  "description": "[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RianNegreiros/advanced-node.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RianNegreiros/advanced-node/issues"
+  },
+  "homepage": "https://github.com/RianNegreiros/advanced-node#readme"
+}
