@@ -4,7 +4,8 @@
   "description": "[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rimraf dist && tsc"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/RianNegreiros/advanced-node/issues"
   },
-  "homepage": "https://github.com/RianNegreiros/advanced-node#readme"
+  "homepage": "https://github.com/RianNegreiros/advanced-node#readme",
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "rimraf": "^3.0.2"
+  }
 }
