@@ -13,7 +13,7 @@ Essa API faz parte do treinamento do professor Rodrigo Manguinho (Mango) na Udem
 O objetivo do treinamento é mostrar como criar uma API com uma arquitetura bem definida e desacoplada, utilizando TDD (programação orientada a testes) como metodologia de trabalho, Clean Architecture para fazer a distribuição de responsabilidades em camadas, sempre seguindo os princípios do SOLID e, sempre que possível, aplicando Design Patterns para resolver alguns problemas comuns.
 <br /><br />
 
-> ## Princípios
+> ## Principles
 
 * Single Responsibility
 * Open Closed
@@ -61,7 +61,7 @@ O objetivo do treinamento é mostrar como criar uma API com uma arquitetura bem 
 * Shotgun Surgery
 * Speculative Generality
 
-> ## Metodologias e Designs
+> ## Methodologies and Designs
 
 * TDD
 * Clean Architecture
@@ -73,7 +73,7 @@ O objetivo do treinamento é mostrar como criar uma API com uma arquitetura bem 
 * Use Cases
 * Spike (Agile)
 
-> ## Bibliotecas e Ferramentas
+> ## Libraries and Tools
 
 * NPM
 * Typescript
@@ -104,23 +104,23 @@ O objetivo do treinamento é mostrar como criar uma API com uma arquitetura bem 
 * DotEnv
 * Ts-Node-Dev
 
-> ## Features do Typescript
+> ## Typescript Features
 
-* POO Avançado
+* Advanced POO
 * Strict Mode
 * Interface
 * TypeAlias
 * Namespace
 * Utility Types
-* Modularização de Paths
-* Configurações
+* Paths Modularization
+* Settings
 * Build
 
-> ## Features de Testes
+> ## Tests Features
 
-* Testes Unitários
-* Testes de Integração
-* Cobertura de Testes
+* Unit Tests
+* Integration Tests
+* Tests Coverage
 * Test Doubles
 * Mocks
 * Stubs
