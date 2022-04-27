@@ -1,8 +1,9 @@
 import { AuthenticationError } from '@/domain/errors'
 import { AccessToken } from '@/domain/models'
 import { FacebookAuthentication } from '@/domain/usecases'
-import { ServerError } from '@/application/errors'
+import { RequiredFieldError, ServerError, UnauthorizedError } from '@/application/errors'
 import { FacebookLoginController } from '@/application/controllers'
+import { badRequest } from '@/application/helpers'
 
 import { mock, MockProxy } from 'jest-mock-extended'
 
@@ -21,28 +22,19 @@ describe('FacebookLoginController', () => {
   it('should return 400 if token is empty', async () => {
     const httpResponse = await sut.handle({ token: '' })
 
-    expect(httpResponse).toEqual({
-      statusCode: 400,
-      data: new Error('The field token is required')
-    })
+    expect(httpResponse).toEqual(badRequest(new RequiredFieldError('token')))
   })
 
   it('should return 400 if token is null', async () => {
     const httpResponse = await sut.handle({ token: null })
 
-    expect(httpResponse).toEqual({
-      statusCode: 400,
-      data: new Error('The field token is required')
-    })
+    expect(httpResponse).toEqual(badRequest(new RequiredFieldError('token')))
   })
 
   it('should return 400 if token is undefined', async () => {
     const httpResponse = await sut.handle({ token: undefined })
 
-    expect(httpResponse).toEqual({
-      statusCode: 400,
-      data: new Error('The field token is required')
-    })
+    expect(httpResponse).toEqual(badRequest(new RequiredFieldError('token')))
   })
 
   it('should call FacebookAuthentication with correct params', async () => {
@@ -58,7 +50,7 @@ describe('FacebookLoginController', () => {
 
     expect(httpResponse).toEqual({
       statusCode: 401,
-      data: new AuthenticationError()
+      data: new UnauthorizedError()
     })
   })
 
