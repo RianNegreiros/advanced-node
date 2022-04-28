@@ -1,7 +1,8 @@
 import { AccessToken } from '@/domain/models'
 import { FacebookAuthentication } from '@/domain/usecases'
-import { badRequest, HttpResponse, ok, serverError, unauthorized } from '@/application/helpers'
-import { ValidationBuilder, ValidationComposite } from '@/application/validation'
+import { HttpResponse, ok, unauthorized } from '@/application/helpers'
+import { ValidationBuilder, Validator } from '@/application/validation'
+import { Controller } from './controller'
 
 type httpRequest = {
   token: string
@@ -11,31 +12,21 @@ type Model = Error | {
   accessToken: string
 }
 
-export class FacebookLoginController {
-  constructor (private readonly facebookAuthentication: FacebookAuthentication) {}
-
-  async handle (httpRequest: httpRequest): Promise<HttpResponse<Model>> {
-    try {
-      const error = this.validate(httpRequest)
-      if (error !== undefined) {
-        return badRequest(error)
-      }
-      const accessToken = await this.facebookAuthentication.execute({ token: httpRequest.token })
-      if (accessToken instanceof AccessToken) {
-        return ok({
-          accessToken: accessToken.value
-        })
-      } else {
-        return unauthorized()
-      }
-    } catch (error: any) {
-      return serverError(error)
-    }
+export class FacebookLoginController extends Controller {
+  constructor (private readonly facebookAuthentication: FacebookAuthentication) {
+    super()
   }
 
-  private validate (httpRequest: httpRequest): Error | undefined {
-    return new ValidationComposite([
+  async execute (httpRequest: httpRequest): Promise<HttpResponse<Model>> {
+    const accessToken = await this.facebookAuthentication.execute({ token: httpRequest.token })
+    return accessToken instanceof AccessToken
+      ? ok({ accessToken: accessToken.value })
+      : unauthorized()
+  }
+
+  override buildValidators (httpRequest: httpRequest): Validator[] {
+    return [
       ...ValidationBuilder.of({ value: httpRequest.token, fieldName: 'token' }).required().build()
-    ]).validate()
+    ]
   }
 }
