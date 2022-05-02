@@ -1,6 +1,6 @@
 import { AuthenticationError } from '@/domain/errors'
 import { FacebookAuthentication } from '@/domain/usecases'
-import { LoadFacebookUserApi } from '@/domain/data/contracts/apis'
+import { LoadFacebookUserApi } from '@/domain/contracts/apis'
 import { SaveFacebookAccountRepository, LoadUserAccountRepository } from '../contracts/repos'
 import { AccessToken, FacebookAccount } from '@/domain/models'
 import { TokenGenerator } from '../contracts/crypto'
