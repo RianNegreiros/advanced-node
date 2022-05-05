@@ -6,7 +6,13 @@ import { mock, MockProxy } from 'jest-mock-extended'
 type Adapter = (middleware: Middleware) => RequestHandler
 
 const adaptExpressMiddleware: Adapter = middleware => async (req, res, next) => {
-  await middleware.handle({ ...req.headers })
+  const { statusCode, data } = await middleware.handle({ ...req.headers })
+  if (statusCode === 200) {
+    req.locals = { ...req.locals, ...data }
+    next()
+  } else {
+    res.status(statusCode).json(data)
+  }
 }
 
 interface Middleware {
@@ -25,6 +31,10 @@ describe('ExpressMiddleware', () => {
     res = getMockRes().res
     next = getMockRes().next
     middleware = mock<Middleware>()
+    middleware.handle.mockResolvedValue({
+      statusCode: 200,
+      data: { data: 'any_data' }
+    })
     sut = adaptExpressMiddleware(middleware)
   })
 
@@ -42,5 +52,26 @@ describe('ExpressMiddleware', () => {
 
     expect(middleware.handle).toHaveBeenCalledWith({})
     expect(middleware.handle).toHaveBeenCalledTimes(1)
+  })
+
+  it('should respond with correct error and statusCode', async () => {
+    middleware.handle.mockResolvedValueOnce({
+      statusCode: 500,
+      data: { error: 'any_error' }
+    })
+
+    await sut(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(500)
+    expect(res.status).toHaveBeenCalledTimes(1)
+    expect(res.json).toHaveBeenCalledWith({ error: 'any_error' })
+    expect(res.json).toHaveBeenCalledTimes(1)
+  })
+
+  it('should add data to req.locals', async () => {
+    await sut(req, res, next)
+
+    expect(req.locals).toEqual({ data: 'any_data' })
+    expect(next).toHaveBeenCalledTimes(1)
   })
 })
