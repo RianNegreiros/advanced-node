@@ -8,7 +8,8 @@ type Adapter = (middleware: Middleware) => RequestHandler
 const adaptExpressMiddleware: Adapter = middleware => async (req, res, next) => {
   const { statusCode, data } = await middleware.handle({ ...req.headers })
   if (statusCode === 200) {
-    req.locals = { ...req.locals, ...data }
+    const entries = Object.entries(data).filter(entry => entry[1])
+    req.locals = { ...req.locals, ...Object.fromEntries(entries) }
     next()
   } else {
     res.status(statusCode).json(data)
@@ -33,7 +34,12 @@ describe('ExpressMiddleware', () => {
     middleware = mock<Middleware>()
     middleware.handle.mockResolvedValue({
       statusCode: 200,
-      data: { data: 'any_data' }
+      data: {
+        emptyProp: '',
+        nullProp: null,
+        undefinedProp: undefined,
+        prop: 'any_value'
+      }
     })
     sut = adaptExpressMiddleware(middleware)
   })
@@ -68,10 +74,10 @@ describe('ExpressMiddleware', () => {
     expect(res.json).toHaveBeenCalledTimes(1)
   })
 
-  it('should add data to req.locals', async () => {
+  it('should add valid data to req.locals', async () => {
     await sut(req, res, next)
 
-    expect(req.locals).toEqual({ data: 'any_data' })
+    expect(req.locals).toEqual({ prop: 'any_value' })
     expect(next).toHaveBeenCalledTimes(1)
   })
 })
