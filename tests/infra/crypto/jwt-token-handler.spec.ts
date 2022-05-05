@@ -25,6 +25,7 @@ describe('JwtTokenHandler', () => {
 
     beforeAll(() => {
       key = 'any_key'
+      token = 'any_token'
       expirationInMs = 1000
       fakeJwt.sign.mockImplementation(() => token)
     })
@@ -46,6 +47,21 @@ describe('JwtTokenHandler', () => {
       const promise = sut.generateToken({ key, expirationInMs })
 
       await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
+  })
+
+  describe('validateToken', () => {
+    let token: string
+
+    beforeAll(() => {
+      token = 'any_token'
+    })
+
+    it('should call verify with correct params', async () => {
+      await sut.validateToken({ token })
+
+      expect(fakeJwt.verify).toHaveBeenLastCalledWith(token, secret)
+      expect(fakeJwt.verify).toHaveBeenCalledTimes(1)
     })
   })
 })
