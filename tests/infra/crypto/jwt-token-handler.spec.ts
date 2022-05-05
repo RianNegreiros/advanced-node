@@ -7,32 +7,45 @@ jest.mock('jsonwebtoken')
 describe('JwtTokenHandler', () => {
   let sut: JwtTokenHandler
   let fakeJwt: jest.Mocked<typeof jwt>
+  let secret: string
 
   beforeAll(() => {
     fakeJwt = jwt as jest.Mocked<typeof jwt>
-    fakeJwt.sign.mockImplementation(() => 'any_token')
   })
 
   beforeEach(() => {
-    sut = new JwtTokenHandler('any_secret')
+    secret = 'any_secret'
+    sut = new JwtTokenHandler(secret)
   })
 
-  it('Should call sign with correct params', async () => {
-    await sut.generateToken({ key: 'any_key', expirationInMs: 1000 })
+  describe('generateToken', () => {
+    let key: string
+    let token: string
+    let expirationInMs: number
 
-    expect(fakeJwt.sign).toHaveBeenLastCalledWith({ key: 'any_key' }, 'any_secret', { expiresIn: 1 })
-  })
+    beforeAll(() => {
+      key = 'any_key'
+      expirationInMs = 1000
+      fakeJwt.sign.mockImplementation(() => token)
+    })
 
-  it('Should return a token', async () => {
-    const token = await sut.generateToken({ key: 'any_key', expirationInMs: 1000 })
+    it('should call sign with correct params', async () => {
+      await sut.generateToken({ key, expirationInMs })
 
-    expect(token).toBe('any_token')
-  })
+      expect(fakeJwt.sign).toHaveBeenLastCalledWith({ key }, secret, { expiresIn: 1 })
+    })
 
-  it('Should throw if sign throws', async () => {
-    fakeJwt.sign.mockImplementationOnce(() => { throw new Error('token_error') })
-    const promise = sut.generateToken({ key: 'any_key', expirationInMs: 1000 })
+    it('should return a token', async () => {
+      const token = await sut.generateToken({ key, expirationInMs })
 
-    await expect(promise).rejects.toThrow(new Error('token_error'))
+      expect(token).toBe(token)
+    })
+
+    it('should throw if sign throws', async () => {
+      fakeJwt.sign.mockImplementationOnce(() => { throw new Error('token_error') })
+      const promise = sut.generateToken({ key, expirationInMs })
+
+      await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
   })
 })
