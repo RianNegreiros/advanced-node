@@ -16,9 +16,9 @@ describe('ChangeProfilePicture', () => {
     file = Buffer.from('any_buffer')
     fileStorage = mock()
     fileStorage.upload.mockResolvedValue('any_url')
-    crypto = mock<UUIDGenerator>()
-    crypto.uuid.mockReturnValue(uuid)
+    crypto = mock()
     userProfileRepo = mock()
+    crypto.uuid.mockReturnValue(uuid)
     sut = setupChangeProfilePicture(fileStorage, crypto, userProfileRepo)
   })
 
@@ -39,6 +39,13 @@ describe('ChangeProfilePicture', () => {
     await sut({ id: 'any_id', file })
 
     expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: 'any_url' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not call UploadFile when file is undefined', async () => {
+    await sut({ id: 'any_id', file: undefined })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined })
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
   })
 })
