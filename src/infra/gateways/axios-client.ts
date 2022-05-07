@@ -1,4 +1,4 @@
-import { HttpGetClient } from './index'
+import { HttpGetClient } from '@/infra/gateways'
 
 import axios from 'axios'
 

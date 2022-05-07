@@ -1,5 +1,5 @@
 import { UUIDGenerator } from '@/domain/contracts/gateways'
-import { UUIDHandler } from '@/infra/crypto'
+import { UUIDHandler } from '@/infra/gateways'
 
 import { mocked } from 'jest-mock'
 import { v4 } from 'uuid'
