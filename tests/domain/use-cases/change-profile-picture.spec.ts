@@ -1,8 +1,12 @@
 import { ChangeProfilePicture, setupChangeProfilePicture } from '@/domain/use-cases'
 import { UploadFile, UUIDGenerator } from '@/domain/contracts/gateways'
 import { LoadUserProfile, SaveUserPicture } from '@/domain/contracts/repos'
+import { UserProfile } from '@/domain/entities'
 
 import { mock, MockProxy } from 'jest-mock-extended'
+import { mocked } from 'jest-mock'
+
+jest.mock('@/domain/entities/user-profile')
 
 describe('ChangeProfilePicture', () => {
   let uuid: string
@@ -48,5 +52,21 @@ describe('ChangeProfilePicture', () => {
     await sut({ id: 'any_id', file })
 
     expect(userProfileRepo.load).not.toHaveBeenCalled()
+  })
+
+  it('should return correct data on success', async () => {
+    mocked(UserProfile).mockImplementationOnce(id => ({
+      setPicture: jest.fn(),
+      id: 'any_id',
+      pictureUrl: 'any_url',
+      initials: 'any_initials'
+    }))
+
+    const result = await sut({ id: 'any_id', file })
+
+    expect(result).toMatchObject({
+      pictureUrl: 'any_url',
+      initials: 'any_initials'
+    })
   })
 })
