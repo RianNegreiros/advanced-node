@@ -22,7 +22,7 @@ class AwsS3FileStorage implements UploadFile {
       Body: file,
       ACL: 'public-read'
     }).promise()
-    return `https://${this.bucket}.s3.amazonaws.com/${key}`
+    return `https://${this.bucket}.s3.amazonaws.com/${encodeURIComponent(key)}`
   }
 }
 
@@ -81,5 +81,11 @@ describe('AwsS3FileStorage', () => {
     const imageUrl = await sut.upload({ key, file })
 
     expect(imageUrl).toBe(`https://${bucket}.s3.amazonaws.com/${key}`)
+  })
+
+  it('should return encoded imageUrl', async () => {
+    const imageUrl = await sut.upload({ key: 'any key', file })
+
+    expect(imageUrl).toBe(`https://${bucket}.s3.amazonaws.com/any%20key`)
   })
 })
