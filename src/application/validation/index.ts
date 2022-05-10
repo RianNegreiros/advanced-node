@@ -1,4 +1,6 @@
-export * from './required-string'
+export * from './required'
 export * from './composite'
 export * from './validator'
 export * from './builder'
+export * from './allowed-mime-type'
+export * from './max-file-size'
