@@ -4,14 +4,14 @@
   "description": "[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/main",
+    "build": "rimraf dist && tsc -p tsconfig-build.json",
     "test": "jest --passWithNoTests --no-cache --runInBand",
     "test:watch": "npm test -- --watch",
     "test:staged": "npm test -- --findRelatedTests",
     "test:coverage": "npm test -- --coverage",
     "test:fb-api": "npm test -- -c ./jest.integration.config.js ./tests/external/facebook-api.test.ts",
     "test:s3": "npm test -- -c ./jest.integration.config.js ./tests/external/aws-s3-file-storage.test.ts",
-    "start": "node dist/main",
-    "build": "rimraf dist && tsc -p tsconfig-build.json",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "prepare": "husky install"
