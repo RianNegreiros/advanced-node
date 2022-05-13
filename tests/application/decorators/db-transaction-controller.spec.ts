@@ -10,15 +10,21 @@ class DbTransactionController {
 
   async execute (httpRequest: any): Promise<void> {
     await this.db.openTransaction()
-    await this.decoratee.execute(httpRequest)
-    await this.db.commitTransaction()
-    await this.db.closeTransaction()
+    try {
+      await this.decoratee.execute(httpRequest)
+      await this.db.commitTransaction()
+      await this.db.closeTransaction()
+    } catch {
+      await this.db.rollbackTransaction()
+      await this.db.closeTransaction()
+    }
   }
 }
 
 interface DbTransaction {
   openTransaction: () => Promise<void>
   closeTransaction: () => Promise<void>
+  rollbackTransaction: () => Promise<void>
   commitTransaction: () => Promise<void>
 }
 
@@ -52,6 +58,16 @@ describe('DbTransactionController', () => {
 
     expect(db.commitTransaction).toHaveBeenCalledWith()
     expect(db.commitTransaction).toHaveBeenCalledTimes(1)
+    expect(db.closeTransaction).toHaveBeenCalledWith()
+    expect(db.closeTransaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call rollback and close transaction on failure', async () => {
+    decotatee.execute.mockRejectedValueOnce(new Error('decoratee_error'))
+    await sut.execute({ any: 'any' })
+
+    expect(db.rollbackTransaction).toHaveBeenCalledWith()
+    expect(db.rollbackTransaction).toHaveBeenCalledTimes(1)
     expect(db.closeTransaction).toHaveBeenCalledWith()
     expect(db.closeTransaction).toHaveBeenCalledTimes(1)
   })
