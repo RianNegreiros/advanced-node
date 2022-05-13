@@ -7,9 +7,11 @@ class DbTransactionController extends Controller {
   constructor (
     private readonly decoratee: Controller,
     private readonly db: DbTransaction
-  ) {}
+  ) {
+    super()
+  }
 
-  async execute (httpRequest: any): Promise<HttpResponse | undefined> {
+  async execute (httpRequest: any): Promise<HttpResponse> {
     await this.db.openTransaction()
     try {
       const httpResponse = await this.decoratee.execute(httpRequest)
@@ -41,6 +43,10 @@ describe('DbTransactionController', () => {
     decotatee = mock()
     decotatee.execute.mockResolvedValue({ statusCode: 204, data: null })
     sut = new DbTransactionController(decotatee, db)
+  })
+
+  it('should extend Controller', async () => {
+    expect(sut).toBeInstanceOf(Controller)
   })
 
   it('should open transaction', async () => {
