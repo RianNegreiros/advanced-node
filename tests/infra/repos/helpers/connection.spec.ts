@@ -145,4 +145,14 @@ describe('PgConnection', () => {
     expect(commitTransactionSpy).not.toHaveBeenCalled()
     await expect(promise).rejects.toThrow(new ConnectionNotFoundError())
   })
+
+  it('should rollback transaction', async () => {
+    await sut.connect()
+    await sut.rollbackTransaction()
+
+    expect(rollbackTransactionSpy).toHaveBeenCalledWith()
+    expect(rollbackTransactionSpy).toHaveBeenCalledTimes(1)
+
+    await sut.disconnect()
+  })
 })
