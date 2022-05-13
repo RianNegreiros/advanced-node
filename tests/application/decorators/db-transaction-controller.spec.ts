@@ -1,4 +1,5 @@
 import { Controller } from '@/application/controllers'
+import { HttpResponse } from '@/application/helpers'
 
 import { mock, MockProxy } from 'jest-mock-extended'
 
@@ -8,12 +9,13 @@ class DbTransactionController {
     private readonly db: DbTransaction
   ) {}
 
-  async execute (httpRequest: any): Promise<void> {
+  async execute (httpRequest: any): Promise<HttpResponse | undefined> {
     await this.db.openTransaction()
     try {
-      await this.decoratee.execute(httpRequest)
+      const httpResponse = await this.decoratee.execute(httpRequest)
       await this.db.commitTransaction()
       await this.db.closeTransaction()
+      return httpResponse
     } catch {
       await this.db.rollbackTransaction()
       await this.db.closeTransaction()
@@ -36,6 +38,7 @@ describe('DbTransactionController', () => {
   beforeEach(() => {
     db = mock()
     decotatee = mock()
+    decotatee.execute.mockResolvedValue({ statusCode: 204, data: null })
     sut = new DbTransactionController(decotatee, db)
   })
 
@@ -70,5 +73,11 @@ describe('DbTransactionController', () => {
     expect(db.rollbackTransaction).toHaveBeenCalledTimes(1)
     expect(db.closeTransaction).toHaveBeenCalledWith()
     expect(db.closeTransaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call rollback and close transaction on failure', async () => {
+    const httpResponse = await sut.execute({ any: 'any' })
+
+    expect(httpResponse).toEqual({ statusCode: 204, data: null })
   })
 })
