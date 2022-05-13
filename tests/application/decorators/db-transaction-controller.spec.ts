@@ -3,7 +3,7 @@ import { HttpResponse } from '@/application/helpers'
 
 import { mock, MockProxy } from 'jest-mock-extended'
 
-class DbTransactionController {
+class DbTransactionController extends Controller {
   constructor (
     private readonly decoratee: Controller,
     private readonly db: DbTransaction
@@ -14,10 +14,11 @@ class DbTransactionController {
     try {
       const httpResponse = await this.decoratee.execute(httpRequest)
       await this.db.commitTransaction()
-      await this.db.closeTransaction()
       return httpResponse
-    } catch {
+    } catch (error) {
       await this.db.rollbackTransaction()
+      throw error
+    } finally {
       await this.db.closeTransaction()
     }
   }
@@ -67,17 +68,25 @@ describe('DbTransactionController', () => {
 
   it('should call rollback and close transaction on failure', async () => {
     decotatee.execute.mockRejectedValueOnce(new Error('decoratee_error'))
-    await sut.execute({ any: 'any' })
-
-    expect(db.rollbackTransaction).toHaveBeenCalledWith()
-    expect(db.rollbackTransaction).toHaveBeenCalledTimes(1)
-    expect(db.closeTransaction).toHaveBeenCalledWith()
-    expect(db.closeTransaction).toHaveBeenCalledTimes(1)
+    await sut.execute({ any: 'any' }).catch(() => {
+      expect(db.rollbackTransaction).toHaveBeenCalledWith()
+      expect(db.rollbackTransaction).toHaveBeenCalledTimes(1)
+      expect(db.closeTransaction).toHaveBeenCalledWith()
+      expect(db.closeTransaction).toHaveBeenCalledTimes(1)
+    })
   })
 
-  it('should call rollback and close transaction on failure', async () => {
+  it('should return same result as decoratee on success', async () => {
     const httpResponse = await sut.execute({ any: 'any' })
 
     expect(httpResponse).toEqual({ statusCode: 204, data: null })
+  })
+
+  it('should rethrow if decoratee throw', async () => {
+    const error = new Error('decoratee_error')
+    decotatee.execute.mockRejectedValueOnce(error)
+    const promise = sut.execute({ any: 'any' })
+
+    await expect(promise).rejects.toThrow(error)
   })
 })
