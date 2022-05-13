@@ -1,4 +1,4 @@
-import { createConnection, getConnection, getConnectionManager } from 'typeorm'
+import { createConnection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
 
 import { mocked } from 'jest-mock'
 
@@ -13,6 +13,7 @@ jest.mock('typeorm', () => ({
 
 class PgConnection {
   private static instance?: PgConnection
+  private query?: QueryRunner
 
   private constructor () {}
 
@@ -25,7 +26,12 @@ class PgConnection {
     const connection = (getConnectionManager().has('default'))
       ? getConnection()
       : await createConnection()
-    connection.createQueryRunner()
+    this.query = connection.createQueryRunner()
+  }
+
+  async disconnect (): Promise<void> {
+    await getConnection().close()
+    this.query = undefined
   }
 }
 
@@ -34,6 +40,7 @@ describe('PgConnection', () => {
   let createQueryRunnerSpy: jest.Mock
   let createConnectionSpy: jest.Mock
   let getConnectionSpy: jest.Mock
+  let closeSpy: jest.Mock
   let hasSpy: jest.Mock
   let sut: PgConnection
 
@@ -48,8 +55,10 @@ describe('PgConnection', () => {
       createQueryRunner: createQueryRunnerSpy
     })
     mocked(createConnection).mockImplementation(createConnectionSpy)
+    closeSpy = jest.fn()
     getConnectionSpy = jest.fn().mockReturnValue({
-      createQueryRunner: createQueryRunnerSpy
+      createQueryRunner: createQueryRunnerSpy,
+      close: closeSpy
     })
     mocked(getConnection).mockImplementation(getConnectionSpy)
   })
@@ -81,5 +90,13 @@ describe('PgConnection', () => {
     expect(getConnectionSpy).toHaveBeenCalledWith()
     expect(getConnectionSpy).toHaveBeenCalledTimes(1)
     expect(createQueryRunnerSpy).toHaveBeenCalledWith()
+  })
+
+  it('should close connection', async () => {
+    await sut.connect()
+    await sut.disconnect()
+
+    expect(closeSpy).toHaveBeenCalledWith()
+    expect(closeSpy).toHaveBeenCalledTimes(1)
   })
 })
