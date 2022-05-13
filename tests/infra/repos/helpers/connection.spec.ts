@@ -140,7 +140,7 @@ describe('PgConnection', () => {
   })
 
   it('should return ConnectionNotFoundError on commitTransaction if connection is not found', async () => {
-    const promise = sut.closeTransaction()
+    const promise = sut.commitTransaction()
 
     expect(commitTransactionSpy).not.toHaveBeenCalled()
     await expect(promise).rejects.toThrow(new ConnectionNotFoundError())
@@ -157,7 +157,7 @@ describe('PgConnection', () => {
   })
 
   it('should return ConnectionNotFoundError on rollbackTransaction if connection is not found', async () => {
-    const promise = sut.closeTransaction()
+    const promise = sut.rollbackTransaction()
 
     expect(rollbackTransactionSpy).not.toHaveBeenCalled()
     await expect(promise).rejects.toThrow(new ConnectionNotFoundError())
