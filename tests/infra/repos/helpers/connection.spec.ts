@@ -1,5 +1,4 @@
 import { createConnection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
-
 import { mocked } from 'jest-mock'
 
 jest.mock('typeorm', () => ({
@@ -7,8 +6,8 @@ jest.mock('typeorm', () => ({
   PrimaryGeneratedColumn: jest.fn(),
   Column: jest.fn(),
   createConnection: jest.fn(),
-  getConnectionManager: jest.fn(),
-  getConnection: jest.fn()
+  getConnection: jest.fn(),
+  getConnectionManager: jest.fn()
 }))
 
 class PgConnection {
@@ -23,15 +22,23 @@ class PgConnection {
   }
 
   async connect (): Promise<void> {
-    const connection = (getConnectionManager().has('default'))
+    const connection = getConnectionManager().has('default')
       ? getConnection()
       : await createConnection()
     this.query = connection.createQueryRunner()
   }
 
   async disconnect (): Promise<void> {
+    if (this.query === undefined) throw new ConnectionNotFoundError()
     await getConnection().close()
     this.query = undefined
+  }
+}
+
+class ConnectionNotFoundError extends Error {
+  constructor () {
+    super('No connection was found')
+    this.name = 'ConnectionNotFoundError'
   }
 }
 
@@ -40,17 +47,17 @@ describe('PgConnection', () => {
   let createQueryRunnerSpy: jest.Mock
   let createConnectionSpy: jest.Mock
   let getConnectionSpy: jest.Mock
-  let closeSpy: jest.Mock
   let hasSpy: jest.Mock
+  let closeSpy: jest.Mock
   let sut: PgConnection
 
-  beforeAll(() => {
+  beforeEach(() => {
     hasSpy = jest.fn().mockReturnValue(true)
     getConnectionManagerSpy = jest.fn().mockReturnValue({
       has: hasSpy
     })
     mocked(getConnectionManager).mockImplementation(getConnectionManagerSpy)
-    createQueryRunnerSpy = jest.fn()
+    createQueryRunnerSpy = jest.fn().mockReturnValue({})
     createConnectionSpy = jest.fn().mockResolvedValue({
       createQueryRunner: createQueryRunnerSpy
     })
@@ -61,9 +68,6 @@ describe('PgConnection', () => {
       close: closeSpy
     })
     mocked(getConnection).mockImplementation(getConnectionSpy)
-  })
-
-  beforeEach(() => {
     sut = PgConnection.getInstance()
   })
 
@@ -90,6 +94,7 @@ describe('PgConnection', () => {
     expect(getConnectionSpy).toHaveBeenCalledWith()
     expect(getConnectionSpy).toHaveBeenCalledTimes(1)
     expect(createQueryRunnerSpy).toHaveBeenCalledWith()
+    expect(createQueryRunnerSpy).toHaveBeenCalledTimes(1)
   })
 
   it('should close connection', async () => {
@@ -98,5 +103,12 @@ describe('PgConnection', () => {
 
     expect(closeSpy).toHaveBeenCalledWith()
     expect(closeSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return ConnectionNotFoundError on disconnect if connection is not found', async () => {
+    const promise = sut.disconnect()
+
+    expect(closeSpy).not.toHaveBeenCalled()
+    await expect(promise).rejects.toThrow(new ConnectionNotFoundError())
   })
 })
