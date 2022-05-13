@@ -177,4 +177,9 @@ describe('PgConnection', () => {
 
     await sut.disconnect()
   })
+
+  it('should return ConnectionNotFoundError on getRepository if connection is not found', async () => {
+    expect(getRepositorySpy).not.toHaveBeenCalled()
+    expect(() => sut.getRepository(PgUser)).toThrow(new ConnectionNotFoundError())
+  })
 })
