@@ -155,4 +155,11 @@ describe('PgConnection', () => {
 
     await sut.disconnect()
   })
+
+  it('should return ConnectionNotFoundError on rollbackTransaction if connection is not found', async () => {
+    const promise = sut.closeTransaction()
+
+    expect(rollbackTransactionSpy).not.toHaveBeenCalled()
+    await expect(promise).rejects.toThrow(new ConnectionNotFoundError())
+  })
 })
