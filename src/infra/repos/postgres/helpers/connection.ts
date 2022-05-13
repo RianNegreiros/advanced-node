@@ -1,10 +1,12 @@
-import { ConnectionNotFoundError } from '@/infra/repos/postgres/helpers'
+import { DbTransaction } from '@/application/contracts'
+import { ConnectionNotFoundError, TransactionNotFoundError } from '@/infra/repos/postgres/helpers'
 
-import { QueryRunner, getConnectionManager, getConnection, createConnection, Repository, ObjectType } from 'typeorm'
+import { createConnection, getConnection, getConnectionManager, ObjectType, QueryRunner, Repository, Connection, getRepository } from 'typeorm'
 
-export class PgConnection {
+export class PgConnection implements DbTransaction {
   private static instance?: PgConnection
   private query?: QueryRunner
+  private connection?: Connection
 
   private constructor () {}
 
@@ -14,40 +16,42 @@ export class PgConnection {
   }
 
   async connect (): Promise<void> {
-    const connection = getConnectionManager().has('default')
+    this.connection = getConnectionManager().has('default')
       ? getConnection()
       : await createConnection()
-    this.query = connection.createQueryRunner()
   }
 
   async disconnect (): Promise<void> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
+    if (this.connection === undefined) throw new ConnectionNotFoundError()
     await getConnection().close()
     this.query = undefined
+    this.connection = undefined
   }
 
   async openTransaction (): Promise<void> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
+    if (this.connection === undefined) throw new ConnectionNotFoundError()
+    this.query = this.connection.createQueryRunner()
     await this.query.startTransaction()
   }
 
   async closeTransaction (): Promise<void> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
+    if (this.query === undefined) throw new TransactionNotFoundError()
     await this.query.release()
   }
 
   async commitTransaction (): Promise<void> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
+    if (this.query === undefined) throw new TransactionNotFoundError()
     await this.query.commitTransaction()
   }
 
   async rollbackTransaction (): Promise<void> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
+    if (this.query === undefined) throw new TransactionNotFoundError()
     await this.query.rollbackTransaction()
   }
 
   getRepository<Entity> (entity: ObjectType<Entity>): Repository<Entity> {
-    if (this.query === undefined) throw new ConnectionNotFoundError()
-    return this.query.manager.getRepository(entity)
+    if (this.connection === undefined) throw new ConnectionNotFoundError()
+    if (this.query !== undefined) return this.query.manager.getRepository(entity)
+    return getRepository(entity)
   }
 }
