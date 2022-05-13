@@ -1,28 +1,35 @@
-import { PgUserAccountRepository } from '@/infra/repos'
+import { PgUserAccountRepository, PgRepository } from '@/infra/repos/postgres'
+import { PgConnection } from '@/infra/repos/postgres/helpers'
 import { PgUser } from '@/infra/repos/postgres/entities'
 import { makeFakeDb } from './postgres/mocks'
 
-import { getConnection, getRepository, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { IBackup } from 'pg-mem'
 
 describe('PgUserAccountRepository', () => {
   let sut: PgUserAccountRepository
+  let connection: PgConnection
   let pgUserRepo: Repository<PgUser>
   let backup: IBackup
 
   beforeAll(async () => {
-    const db = await makeFakeDb()
+    connection = PgConnection.getInstance()
+    const db = await makeFakeDb([PgUser])
     backup = db.backup()
-    pgUserRepo = getRepository(PgUser)
+    pgUserRepo = connection.getRepository(PgUser)
   })
 
   afterAll(async () => {
-    await getConnection().close()
+    await connection.disconnect()
   })
 
   beforeEach(() => {
     backup.restore()
     sut = new PgUserAccountRepository()
+  })
+
+  it('should extends PgRepository', () => {
+    expect(sut).toBeInstanceOf(PgRepository)
   })
 
   describe('load', () => {
