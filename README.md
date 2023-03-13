@@ -1,8 +1,4 @@
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
-
 # **Advanced Node**
-
-[![alt text](./public/img/logo-course.jpeg "Link para o treinamento")](https://www.udemy.com/course/nodejs-avancado/?referralCode=AF51096F87A7A9A81C5C)
 
 ---
 
